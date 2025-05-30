@@ -11,3 +11,6 @@ Thumbs.db
 
 # Archivos de configuración local
 .env
+echo "__pycache__/" >> .gitignore
+echo "*.db" >> .gitignore
+

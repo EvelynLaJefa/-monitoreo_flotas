@@ -71,6 +71,71 @@ def obtener_datos():
     except Exception as e:
         return jsonify({'status': 'error', 'mensaje': f'Error al obtener datos: {str(e)}'}), 500
 
+# Ruta POST para recibir ubicación desde el celular
+@app.route('/api/ubicacion', methods=['POST'])
+def recibir_ubicacion():
+    datos = request.get_json()
+
+    if not datos:
+        return jsonify({'status': 'error', 'mensaje': 'No se enviaron datos'}), 400
+
+    claves_requeridas = ['latitud', 'longitud']
+    for clave in claves_requeridas:
+        if clave not in datos:
+            return jsonify({'status': 'error', 'mensaje': f'Falta el campo: {clave}'}), 400
+
+    try:
+        latitud = float(datos['latitud'])
+        longitud = float(datos['longitud'])
+        dispositivo = datos.get('dispositivo', 'desconocido')
+
+        conexion = sqlite3.connect('vehiculos.db')
+        cursor = conexion.cursor()
+        cursor.execute('''
+            INSERT INTO ubicaciones (latitud, longitud, dispositivo)
+            VALUES (?, ?, ?)
+        ''', (latitud, longitud, dispositivo))
+        conexion.commit()
+        conexion.close()
+
+        print("📍 Ubicación guardada:", latitud, longitud)
+
+        return jsonify({'status': 'ok', 'mensaje': 'Ubicación guardada correctamente'}), 200
+
+    except Exception as e:
+        return jsonify({'status': 'error', 'mensaje': f'Error al guardar ubicación: {str(e)}'}), 500
+
+@app.route('/api/ubicacion', methods=['GET'])
+def obtener_ubicaciones():
+    try:
+        conexion = sqlite3.connect('vehiculos.db')
+        cursor = conexion.cursor()
+        cursor.execute('''
+            SELECT id, latitud, longitud, fecha_hora, dispositivo
+            FROM ubicaciones
+            ORDER BY id DESC
+            LIMIT 10
+        ''')
+        filas = cursor.fetchall()
+        conexion.close()
+
+        datos = []
+        for fila in filas:
+            datos.append({
+                'id': fila[0],
+                'latitud': fila[1],
+                'longitud': fila[2],
+                'fecha_hora': fila[3],
+                'dispositivo': fila[4]
+            })
+
+        return jsonify({'status': 'ok', 'datos': datos}), 200
+
+    except Exception as e:
+        return jsonify({'status': 'error', 'mensaje': f'Error al obtener ubicaciones: {str(e)}'}), 500
+
+
+
 
 # Ejecutar servidor
 if __name__ == '__main__':
