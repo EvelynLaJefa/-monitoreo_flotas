@@ -1,12 +1,12 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import sqlite3
 
 app = Flask(__name__)
 
 # Ruta para comprobar que el servidor funciona
-@app.route('/')
-def home():
-    return '🚀 Servidor Flask funcionando correctamente'
+#@app.route('/')
+#def home():
+#    return '🚀 Servidor Flask funcionando correctamente'
 
 # Ruta POST para recibir y guardar datos
 @app.route('/api/datos', methods=['POST'])
@@ -133,7 +133,9 @@ def obtener_ubicaciones():
 
     except Exception as e:
         return jsonify({'status': 'error', 'mensaje': f'Error al obtener ubicaciones: {str(e)}'}), 500
-
+@app.route("/")
+def mapa():
+    return render_template("mapa.html")
 
 
 
